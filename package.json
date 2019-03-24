@@ -26,6 +26,7 @@
     "pretty-quick": "^1.10.0"
   },
   "dependencies": {
+    "event": "^1.0.0",
     "rxjs": "^6.4.0"
   },
   "husky": {
