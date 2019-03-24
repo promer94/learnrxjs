@@ -6,7 +6,8 @@
   "author": "Yixuan Xu <yixuanxu94@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "start": "parcel index.html"
+    "start": "parcel index.html",
+    "lint": "eslint ."
   },
   "devDependencies": {
     "babel-eslint": "^9.0.0",
