@@ -7,4 +7,4 @@ source$
     map(v => v),
     repeat(2)
   )
-  .subscribe(v => console.log('🐣🐣', v), null, v => console.log('done'))
+  .subscribe(v => console.log('🐣🐣', v), null, () => console.log('done'))
