@@ -1,39 +1,25 @@
-import { fromEvent } from 'rxjs'
-import { concatAll, takeUntil, map, withLatestFrom } from 'rxjs/operators'
+import { fromEvent, from } from 'rxjs'
+import { switchMap, filter } from 'rxjs/operators'
+import { fromFetch } from 'rxjs/fetch'
 
-const dragDOM = document.getElementById('drag')
+const input = document.querySelector('.search')
 
-function render(pos) {
-  requestAnimationFrame(() => {
-    dragDOM.style.left = `${pos.x}px`
-    dragDOM.style.top = `${pos.y}px`
-  })
-}
+const input$ = fromEvent(input, 'input')
+const createQueryStreamByFromFetch = url => fromFetch(url).pipe(switchMap(response => response.json()))
+const createQueryStreamByFrom = url => from(fetch(url).then(response => response.json()))
 
-const mouseDown$ = fromEvent(dragDOM, 'mousedown')
-const mouseUp$ = fromEvent(document.body, 'mouseup')
-const mouseMove$ = fromEvent(document.body, 'mousemove')
-
-const start$ = mouseDown$.pipe(map(({ target: { offsetLeft, offsetTop } }) => ({ offsetLeft, offsetTop })))
-
-const move$ = mouseDown$.pipe(
-  map(downEvent =>
-    mouseMove$.pipe(
-      map(moveEvent => ({ start: downEvent, end: moveEvent })),
-      takeUntil(mouseUp$)
-    )
-  ),
-  concatAll(),
-  map(({ start: { clientX, clientY }, end }) => ({
-    moveX: end.clientX - clientX,
-    moveY: end.clientY - clientY
-  }))
-)
-move$
+input$
   .pipe(
-    withLatestFrom(start$, ({ moveX, moveY }, { offsetLeft, offsetTop }) => ({
-      x: offsetLeft + moveX,
-      y: offsetTop + moveY
-    }))
+    filter(({ target: { value } }) => value !== ''),
+    switchMap(({ target: { value } }) =>
+      createQueryStreamByFromFetch(`https://hn.algolia.com/api/v1/search?query=${value}`)
+    )
   )
-  .subscribe(render)
+  .subscribe(data => console.log('fromFetch', data))
+
+input$
+  .pipe(
+    filter(({ target: { value } }) => value !== ''),
+    switchMap(({ target: { value } }) => createQueryStreamByFrom(`https://hn.algolia.com/api/v1/search?query=${value}`))
+  )
+  .subscribe(data => console.log('from', data))
